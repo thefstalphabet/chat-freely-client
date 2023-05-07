@@ -7,6 +7,7 @@ import { useNavigate } from "react-router";
 import axios from "axios";
 import { UserContext } from "../context/Context";
 import { BsEyeFill, BsEyeSlashFill } from "react-icons/bs";
+import { makeApiRequest } from "../api/common";
 
 const initialInputData = {
   name: "",
@@ -35,23 +36,13 @@ export default function SignUp() {
   const handleFormSubmit = async (event) => {
     event.preventDefault();
     setLoading(true);
-    try {
-      const config = {
-        headers: {
-          "Content-type": "application/json",
-        },
-      };
-      const URL = "/api/user";
-      const { data } = await axios.post(
-        URL,
-        {
-          name,
-          email,
-          password,
-        },
-        config
-      );
-      console.log(data.token);
+    const payload = {
+      name,
+      email,
+      password,
+    };
+    const res = await makeApiRequest("api/user", "post", false, payload);
+    if (res.data) {
       toast({
         description: "Registered sucessfully",
         status: "success",
@@ -60,9 +51,9 @@ export default function SignUp() {
       });
       setLoading(false);
       navigate("/login");
-    } catch (error) {
-      const { status } = error.response;
-      if (status === 409) {
+    } else {
+      const { statusCode, message } = res;
+      if (statusCode === 409) {
         setLoading(false);
         return toast({
           description: "Already registered",
@@ -70,7 +61,7 @@ export default function SignUp() {
           duration: 5000,
           position: "bottom-left",
         });
-      } else if (status === 400) {
+      } else if (statusCode === 400) {
         setLoading(false);
         return toast({
           description: "All inputs are required",
@@ -81,13 +72,66 @@ export default function SignUp() {
       } else {
         setLoading(false);
         return toast({
-          description: error.message,
+          description: message,
           status: "error",
           duration: 5000,
           position: "bottom-left",
         });
       }
     }
+    // try {
+    //   const config = {
+    //     headers: {
+    //       "Content-type": "application/json",
+    //     },
+    //   };
+    //   const URL = "/api/user";
+    //   const { data } = await axios.post(
+    //     URL,
+    //     {
+    //       name,
+    //       email,
+    //       password,
+    //     },
+    //     config
+    //   );
+    //   console.log(data.token);
+    // toast({
+    //   description: "Registered sucessfully",
+    //   status: "success",
+    //   duration: 5000,
+    //   position: "bottom-left",
+    // });
+    // setLoading(false);
+    // navigate("/login");
+    // } catch (error) {
+    //   const { status } = error.response;
+    //   if (status === 409) {
+    //     setLoading(false);
+    //     return toast({
+    //       description: "Already registered",
+    //       status: "info",
+    //       duration: 5000,
+    //       position: "bottom-left",
+    //     });
+    //   } else if (status === 400) {
+    //     setLoading(false);
+    //     return toast({
+    //       description: "All inputs are required",
+    //       status: "warning",
+    //       duration: 5000,
+    //       position: "bottom-left",
+    //     });
+    //   } else {
+    //     setLoading(false);
+    //     return toast({
+    //       description: error.message,
+    //       status: "error",
+    //       duration: 5000,
+    //       position: "bottom-left",
+    //     });
+    //   }
+    // }
   };
 
   return (

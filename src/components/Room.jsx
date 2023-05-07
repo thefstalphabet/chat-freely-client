@@ -15,12 +15,12 @@ import { UserContext } from "../context/Context";
 import ProfileModal from "./ProfileModal";
 import { GroupUsersModal, SpinnerLoading } from "./index";
 import GroupModal from "./GroupModal";
-import axios from "axios";
 import { YourMsg, SomeoneMsg, TypingIndicator } from "./index";
 import io from "socket.io-client";
 import { HiDotsCircleHorizontal } from "react-icons/hi";
 import { MdArrowBackIosNew } from "react-icons/md";
 import { IoSend } from "react-icons/io5";
+import { makeApiRequest } from "../api/common";
 
 // socket stuff
 const URL = "https://chat-freely-app.herokuapp.com";
@@ -49,14 +49,12 @@ export default function Room() {
 
   const handleDeleteGroup = async (chatId) => {
     setLoading(true);
-    try {
-      const config = {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      };
-      const URL = `/api/chat/group?chatId=${chatId}`;
-      await axios.delete(URL, config);
+    const res = await makeApiRequest(
+      `api/chat/group?chatId=${chatId}`,
+      "delete",
+      true
+    );
+    if (res) {
       toast({
         description: "Group delete sucessfully",
         status: "success",
@@ -66,51 +64,108 @@ export default function Room() {
       setLoading(false);
       setFetchAgain(!fetchAgain);
       setSelectedChat([]);
-    } catch (error) {
-      setLoading(false);
+    } else {
+      const { message } = res;
       return toast({
-        description: error.message,
+        description: message,
         status: "error",
         duration: 5000,
         position: "bottom-left",
       });
     }
+    // try {
+    //   const config = {
+    //     headers: {
+    //       Authorization: `Bearer ${localStorage.getItem("token")}`,
+    //     },
+    //   };
+    //   const URL = `/api/chat/group?chatId=${chatId}`;
+    //   await axios.delete(URL, config);
+    // toast({
+    //   description: "Group delete sucessfully",
+    //   status: "success",
+    //   duration: 5000,
+    //   position: "bottom-left",
+    // });
+    // setLoading(false);
+    // setFetchAgain(!fetchAgain);
+    // setSelectedChat([]);
+    // } catch (error) {
+    //   return toast({
+    //       description: error.message,
+    //   status: "error",
+    //   duration: 5000,
+    //   position: "bottom-left",
+    // });
+    // }
+    setLoading(false);
   };
+
   const handleLeaveGroup = async () => {
-    setLoading(true);
-    try {
-      const config = {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      };
-      const URL = "/api/chat/groupremove";
-      await axios.put(
-        URL,
-        {
-          chatId: selectedChat._id,
-          userId: userInfo._id,
-        },
-        config
-      );
+    // setLoading(true);
+    const payload = {
+      chatId: selectedChat._id,
+      userId: userInfo._id,
+    };
+    const res = await makeApiRequest(
+      "api/chat/groupremove",
+      "put",
+      true,
+      payload
+    );
+    console.log(res);
+    if (res) {
       toast({
         description: "Group left sucessfully",
         status: "success",
         duration: 5000,
         position: "bottom-left",
       });
-      setLoading(false);
       setFetchAgain(!fetchAgain);
       setSelectedChat([]);
-    } catch (error) {
-      setLoading(false);
+    } else {
+      const { message } = res;
       return toast({
-        description: error.message,
+        description: message,
         status: "error",
         duration: 5000,
         position: "bottom-left",
       });
     }
+    setLoading(false);
+    // try {
+    //   const config = {
+    //     headers: {
+    //       Authorization: `Bearer ${localStorage.getItem("token")}`,
+    //     },
+    //   };
+    //   const URL = "/api/chat/groupremove";
+    //   await axios.put(
+    //     URL,
+    //     {
+    //       chatId: selectedChat._id,
+    //       userId: userInfo._id,
+    //     },
+    //     config
+    //   );
+    // toast({
+    //   description: "Group left sucessfully",
+    //   status: "success",
+    //   duration: 5000,
+    //   position: "bottom-left",
+    // });
+    // setLoading(false);
+    // setFetchAgain(!fetchAgain);
+    // setSelectedChat([]);
+    // } catch (error) {
+    // setLoading(false);
+    // return toast({
+    //   description: error.message,
+    //   status: "error",
+    //   duration: 5000,
+    //   position: "bottom-left",
+    // });
+    // }
   };
 
   const handleSendMessage = async () => {
@@ -120,37 +175,56 @@ export default function Room() {
 
     setLoading(true);
     socket.emit("stop typing", selectedChat._id); //socket stuff
-    try {
-      const config = {
-        headers: {
-          "Content-type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      };
-      const URL = "/api/message";
-      const { data } = await axios.post(
-        URL,
-        {
-          content: newMessage,
-          chatId: selectedChat._id,
-        },
-        config
-      );
+    const payload = {
+      content: newMessage,
+      chatId: selectedChat._id,
+    };
+    const res = await makeApiRequest("api/message", "post", true, payload);
+    if (res.data) {
       setNewMesage("");
-      setLoading(false);
-      setMessages([...messages, data.message]);
-
-      // socket stuff
-      socket.emit("new message", data.message);
-    } catch (error) {
-      setLoading(false);
+      setMessages([...messages, res.data.message]);
+      socket.emit("new message", res.data.message);
+    } else {
+      const { message } = res;
       return toast({
-        description: error.message,
+        description: message,
         status: "error",
         duration: 5000,
         position: "bottom-left",
       });
     }
+    setLoading(false);
+    // try {
+    //   const config = {
+    //     headers: {
+    //       "Content-type": "application/json",
+    //       Authorization: `Bearer ${localStorage.getItem("token")}`,
+    //     },
+    //   };
+    //   const URL = "/api/message";
+    //   const { data } = await axios.post(
+    //     URL,
+    //     {
+    //       content: newMessage,
+    //       chatId: selectedChat._id,
+    //     },
+    //     config
+    //   );
+    // setNewMesage("");
+    // setLoading(false);
+    // setMessages([...messages, data.message]);
+
+    //   // socket stuff
+    //   socket.emit("new message", data.message);
+    // } catch (error) {
+    // setLoading(false);
+    // return toast({
+    //   description: error.message,
+    //   status: "error",
+    //   duration: 5000,
+    //   position: "bottom-left",
+    // });
+    // }
   };
 
   const handleTyping = async (event) => {
@@ -185,29 +259,47 @@ export default function Room() {
     }
 
     setLoading(true);
-    try {
-      const config = {
-        headers: {
-          "Content-type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      };
-      const URL = `/api/message/${selectedChat._id}`;
-      const { data } = await axios.get(URL, config);
+    const res = await makeApiRequest(
+      `api/message/${selectedChat._id}`,
+      "get",
+      true
+    );
+    if (res.data) {
       setLoading(false);
-      setMessages(data.messages);
-
-      // socket stuff
-      socket.emit("join chat", selectedChat._id);
-    } catch (error) {
+      setMessages(res.data.messages);
+    } else {
       setLoading(false);
+      const { message } = res;
       return toast({
-        description: error.message,
+        description: message,
         status: "error",
         duration: 5000,
         position: "bottom-left",
       });
     }
+    // try {
+    //   const config = {
+    //     headers: {
+    //       "Content-type": "application/json",
+    //       Authorization: `Bearer ${localStorage.getItem("token")}`,
+    //     },
+    //   };
+    //   const URL = `/api/message/${selectedChat._id}`;
+    //   const { data } = await axios.get(URL, config);
+    // setLoading(false);
+    // setMessages(data.messages);
+
+    //   // socket stuff
+    //   socket.emit("join chat", selectedChat._id);
+    // } catch (error) {
+    // setLoading(false);
+    // return toast({
+    //   description: error.message,
+    //   status: "error",
+    //   duration: 5000,
+    //   position: "bottom-left",
+    // });
+    // }
   };
 
   useEffect(() => {

@@ -21,7 +21,8 @@ import {
   SpinnerLoading,
   Card,
 } from "../components";
-import { IoPersonAdd } from 'react-icons/io5';
+import { IoPersonAdd } from "react-icons/io5";
+import { makeApiRequest } from "../api/common";
 
 export default function Chats() {
   const toast = useToast();
@@ -58,17 +59,15 @@ export default function Chats() {
       setLoading(false);
       return;
     }
-    try {
-      const config = {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      };
-      const URL = `/api/user/users/?search=${query}`;
-      const { data } = await axios.get(URL, config);
+    const res = await makeApiRequest(
+      `api/user/users/?search=${query}`,
+      "get",
+      true
+    );
+    if (res.data) {
       setLoading(false);
-      setSearchResult(data);
-    } catch (error) {
+      setSearchResult(res.data);
+    } else {
       setLoading(false);
       return toast({
         description: "Something went wrong",
@@ -77,26 +76,40 @@ export default function Chats() {
         position: "bottom-left",
       });
     }
+    // try {
+    //   const config = {
+    //     headers: {
+    //       Authorization: `Bearer ${localStorage.getItem("token")}`,
+    //     },
+    //   };
+    //   const URL = `/api/user/users/?search=${query}`;
+    //   const { data } = await axios.get(URL, config);
+    // setLoading(false);
+    // setSearchResult(data);
+    // } catch (error) {
+    // setLoading(false);
+    // return toast({
+    //   description: "Something went wrong",
+    //   status: "error",
+    //   duration: 5000,
+    //   position: "bottom-left",
+    // });
+    // }
   };
 
   const acessChat = async (userId) => {
-    try {
-      setLoadingChat(true);
-      const config = {
-        headers: {
-          "Content-type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      };
-      const URL = "/api/chat";
-      const { data } = await axios.post(URL, { userId }, config);
+    setLoadingChat(true);
+    const res = await makeApiRequest("api/chat", "post", true, { userId });
+    console.log(res);
+    if (res.data) {
+      const { data } = res;
       if (!myChats.find((ele) => ele._id === data.chat._id)) {
         setMyChats([data.chat, ...myChats]);
       }
       setQuery("");
       setSelectedChat(data.chat);
       setLoadingChat(false);
-    } catch (error) {
+    } else {
       setLoading(false);
       return toast({
         description: "Something went wrong",
@@ -105,6 +118,31 @@ export default function Chats() {
         position: "bottom-left",
       });
     }
+    // try {
+    //   setLoadingChat(true);
+    //   const config = {
+    //     headers: {
+    //       "Content-type": "application/json",
+    //       Authorization: `Bearer ${localStorage.getItem("token")}`,
+    //     },
+    //   };
+    //   const URL = "/api/chat";
+    //   const { data } = await axios.post(URL, { userId }, config);
+    // if (!myChats.find((ele) => ele._id === data.chat._id)) {
+    //   setMyChats([data.chat, ...myChats]);
+    // }
+    // setQuery("");
+    // setSelectedChat(data.chat);
+    // setLoadingChat(false);
+    // } catch (error) {
+    // setLoading(false);
+    // return toast({
+    //   description: "Something went wrong",
+    //   status: "error",
+    //   duration: 5000,
+    //   position: "bottom-left",
+    // });
+    // }
   };
 
   return (
@@ -129,9 +167,7 @@ export default function Chats() {
         <InputGroup>
           <InputLeftElement
             pointerEvents="none"
-            children={
-              <IoPersonAdd color="#636c72"/>
-            }
+            children={<IoPersonAdd color="#636c72" />}
           />
           <Input
             type="text"

@@ -1,7 +1,6 @@
 import React, { useContext, useState } from "react";
 import Styled from "styled-components";
 import { Link } from "react-router-dom";
-import axios from "axios";
 import {
   useToast,
   Button,
@@ -12,6 +11,7 @@ import {
 import { useNavigate } from "react-router";
 import { UserContext } from "../context/Context";
 import { BsEyeFill, BsEyeSlashFill } from "react-icons/bs";
+import { makeApiRequest } from "../api/common";
 
 const initialInputData = {
   name: "",
@@ -39,23 +39,13 @@ export default function Login() {
   const handleFormSubmit = async (event) => {
     event.preventDefault();
     setLoading(true);
-    try {
-      const config = {
-        headers: {
-          "Content-type": "application/json",
-        },
-      };
-      const URL = "/api/user/signin";
-      const { data } = await axios.post(
-        URL,
-        {
-          email,
-          password,
-        },
-        config
-      );
-      // console.log(data.user);
-      localStorage.setItem("token", data.token);
+    const payload = {
+      email,
+      password,
+    };
+    const res = await makeApiRequest("api/user/signin", "post", false, payload);
+    if (res.data) {
+      localStorage.setItem("token", res.data.token);
       toast({
         description: "Login sucessfully",
         status: "success",
@@ -65,26 +55,23 @@ export default function Login() {
       setLoading(false);
       setFetchAgain(!fetchAgain);
       navigate("/dashboard");
-    } catch (error) {
-      const { status } = error.response;
-      if (status === 401) {
-        setLoading(false);
+    } else {
+      const { statusCode, message } = res;
+      if (statusCode === 401) {
         return toast({
           description: "Invalid login or password. Please try again",
           status: "error",
           duration: 5000,
           position: "bottom-left",
         });
-      } else if (status === 400) {
-        setLoading(false);
+      } else if (statusCode === 400) {
         return toast({
           description: "All inputs are required",
           status: "warning",
           duration: 5000,
           position: "bottom-left",
         });
-      } else if (status === 403) {
-        setLoading(false);
+      } else if (statusCode === 403) {
         return toast({
           description: "Email not registered yet",
           status: "info",
@@ -92,15 +79,71 @@ export default function Login() {
           position: "bottom-left",
         });
       } else {
-        setLoading(false);
         return toast({
-          description: error.message,
+          description: message,
           status: "error",
           duration: 5000,
           position: "bottom-left",
         });
       }
     }
+    setLoading(false);
+    // try {
+    //   const { data } = await axios.post(
+    //     getPerfectUrl("api/user/signin"),
+    //     {
+    //       email,
+    //       password,
+    //     },
+    //     getHeaders()
+    //   );
+    //   localStorage.setItem("token", data.token);
+    // toast({
+    //   description: "Login sucessfully",
+    //   status: "success",
+    //   duration: 5000,
+    //   position: "bottom-left",
+    // });
+    // setLoading(false);
+    // setFetchAgain(!fetchAgain);
+    // navigate("/dashboard");
+    // } catch (error) {
+    //   console.log(error);
+    // const { status } = error.response;
+    // if (status === 401) {
+    //   setLoading(false);
+    //   return toast({
+    //     description: "Invalid login or password. Please try again",
+    //     status: "error",
+    //     duration: 5000,
+    //     position: "bottom-left",
+    //   });
+    // } else if (status === 400) {
+    //   setLoading(false);
+    //   return toast({
+    //     description: "All inputs are required",
+    //     status: "warning",
+    //     duration: 5000,
+    //     position: "bottom-left",
+    //   });
+    // } else if (status === 403) {
+    //   setLoading(false);
+    //   return toast({
+    //     description: "Email not registered yet",
+    //     status: "info",
+    //     duration: 5000,
+    //     position: "bottom-left",
+    //   });
+    // } else {
+    //   setLoading(false);
+    //   return toast({
+    //     description: error.message,
+    //     status: "error",
+    //     duration: 5000,
+    //     position: "bottom-left",
+    //   });
+    // }
+    // }
   };
 
   return (

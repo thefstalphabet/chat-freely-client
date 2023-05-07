@@ -23,6 +23,7 @@ import { DummyUsersLoading, Card, SpinnerLoading } from "../components";
 import { MdOutlineAddCircle } from "react-icons/md";
 import { IoPersonAdd } from "react-icons/io5";
 import { ImCross } from "react-icons/im";
+import { makeApiRequest } from "../api/common";
 
 export default function GroupModal({ type }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -44,17 +45,11 @@ export default function GroupModal({ type }) {
       setLoadingUsers(false);
       return;
     }
-    try {
-      const config = {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      };
-      const URL = `/api/user/users/?search=${query}`;
-      const { data } = await axios.get(URL, config);
+    const res = await makeApiRequest(`api/user/users/?search=${query}`, "get", true);
+    if (res.data) {
       setLoadingUsers(false);
-      setSearchResult(data);
-    } catch (error) {
+      setSearchResult(res.data);
+    } else {
       setLoadingUsers(false);
       return toast({
         description: "Something went wrong",
@@ -63,6 +58,25 @@ export default function GroupModal({ type }) {
         position: "bottom-left",
       });
     }
+    // try {
+    //   const config = {
+    //     headers: {
+    //       Authorization: `Bearer ${localStorage.getItem("token")}`,
+    //     },
+    //   };
+    //   const URL = `/api/user/users/?search=${query}`;
+    //   const { data } = await axios.get(URL, config);
+      // setLoadingUsers(false);
+      // setSearchResult(data);
+    // } catch (error) {
+      // setLoadingUsers(false);
+      // return toast({
+      //   description: "Something went wrong",
+      //   status: "error",
+      //   duration: 5000,
+      //   position: "bottom-left",
+      // });
+    // }
   };
 
   const handleAddUser = async (user) => {
@@ -114,23 +128,13 @@ export default function GroupModal({ type }) {
         position: "bottom-left",
       });
     }
-
-    try {
-      const config = {
-        headers: {
-          "Content-type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      };
-      const URL = "/api/chat/group";
-      const { data } = await axios.post(
-        URL,
-        {
-          name: groupName,
-          users: JSON.stringify(selectedUsers.map((user) => user._id)),
-        },
-        config
-      );
+    const payload = {
+      name: groupName,
+      users: JSON.stringify(selectedUsers.map((user) => user._id)),
+    };
+    const res = await makeApiRequest("api/chat/group", "post", true, payload);
+    if (res.data) {
+      const {data} = res
       setMyChats([data.fullGroupChat, ...myChats]);
       setSelectedChat(data.fullGroupChat);
       setQuery("");
@@ -143,17 +147,56 @@ export default function GroupModal({ type }) {
         duration: 5000,
         position: "bottom-left",
       });
-      setLoading(false);
       onClose();
-    } catch (error) {
-      setLoading(false);
+    } else {
+      const { message } = res;
       return toast({
-        description: error.message,
+        description: message,
         status: "error",
         duration: 5000,
         position: "bottom-left",
       });
     }
+    setLoading(false);
+    // try {
+    //   const config = {
+    //     headers: {
+    //       "Content-type": "application/json",
+    //       Authorization: `Bearer ${localStorage.getItem("token")}`,
+    //     },
+    //   };
+    //   const URL = "/api/chat/group";
+    //   const { data } = await axios.post(
+    //     URL,
+    //     {
+    //       name: groupName,
+    //       users: JSON.stringify(selectedUsers.map((user) => user._id)),
+    //     },
+    //     config
+    //   );
+      // setMyChats([data.fullGroupChat, ...myChats]);
+      // setSelectedChat(data.fullGroupChat);
+      // setQuery("");
+      // setGroupName("");
+      // setSelectedUsers([]);
+      // setSearchResult([]);
+      // toast({
+      //   description: "Created sucessfully",
+      //   status: "success",
+      //   duration: 5000,
+      //   position: "bottom-left",
+      // });
+      // setLoading(false);
+      // onClose();
+    // } catch (error) {
+      // setLoading(false);
+      // return toast({
+      //   description: error.message,
+      //   status: "error",
+      //   duration: 5000,
+      //   position: "bottom-left",
+      // });
+    // }
   };
 
   const handleUpdateGroupChat = async () => {};

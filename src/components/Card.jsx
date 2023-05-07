@@ -7,6 +7,11 @@ import { frontUser } from "../config/chat-logics";
 export default function Card({ user, chat, action }) {
   const { selectedChat, userInfo } = useContext(UserContext);
 
+  // console.log(user);
+
+  // console.log("chat" + chat.users); 
+  // console.log(chat.users[0]._id === userInfo._id ? chat.users[1] : chat.users[0]);
+  
   return (
     <>
       {user && (
@@ -30,15 +35,15 @@ export default function Card({ user, chat, action }) {
             <>
               <Avatar
                 size="md"
-                src={frontUser(userInfo, chat).avatar}
-                name={frontUser(userInfo, chat).name}
+                src={frontUser(userInfo, chat)?.avatar}
+                name={frontUser(userInfo, chat)?.name}
               />
               <Info
                 style={{
                   color: selectedChat._id === chat._id && "var(--white)",
                 }}
               >
-                <h3>{frontUser(userInfo, chat).name}</h3>
+                <h3>{frontUser(userInfo, chat)?.name}</h3>
               </Info>
             </>
           ) : (
