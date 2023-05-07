@@ -3,5 +3,5 @@ export function getApiUrl() {
     if(hostname === "localhost") {
         return "http://localhost:3001/"
     }
-    return "server deployed url"
+    return "https://chat-freely.onrender.com/"
 }
