@@ -11,7 +11,6 @@ export default function App() {
   const { setUserInfo, setMyChats, fetchAgain } = useContext(UserContext);
   const getUserCredentials = async () => {
     const res = await makeApiRequest("api/user", "get", true);
-    console.log(res);
     if (res.data) {
       setUserInfo(res.data.user);
     } else {
@@ -34,7 +33,6 @@ export default function App() {
   const getAllChats = async () => {
     const res = await makeApiRequest("api/chat", "get", true);
     if (res.data) {
-      console.log(res);
       setMyChats(res.data.results);
     } else {
     }

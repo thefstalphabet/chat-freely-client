@@ -11,12 +11,12 @@ import {
   useDisclosure,
   useToast,
 } from "@chakra-ui/react";
-import axios from "axios";
 import React, { useContext, useState } from "react";
 import Styled from "styled-components";
 import { UserContext } from "../context/Context";
 import { SpinnerLoading } from "./index";
 import { ImCross } from "react-icons/im";
+import { makeApiRequest } from "../api/common";
 
 export default function UpdateGroupModal() {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -28,40 +28,68 @@ export default function UpdateGroupModal() {
 
   const handleRemoveUser = async (user) => {
     setLoading(true);
-    try {
-      const config = {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      };
-      const URL = "/api/chat/groupremove";
-      const { data } = await axios.put(
-        URL,
-        {
-          chatId: selectedChat._id,
-          userId: user._id,
-        },
-        config
-      );
-      console.log(data);
+    const payload = {
+      chatId: selectedChat._id,
+      userId: user._id,
+    };
+    const res = await makeApiRequest(
+      "api/chat/groupremove",
+      "put",
+      true,
+      payload
+    );
+    if (res.data) {
       toast({
         description: "User removed sucessfully",
         status: "success",
         duration: 5000,
         position: "bottom-left",
       });
-      setLoading(false);
       setFetchAgain(!fetchAgain);
-      setSelectedChat(data.remove);
-    } catch (error) {
-      setLoading(false);
+      setSelectedChat(res.data.remove);
+    } else {
+      const { message } = res;
       return toast({
-        description: error.message,
+        description: message,
         status: "error",
         duration: 5000,
         position: "bottom-left",
       });
     }
+    // try {
+    //   const config = {
+    //     headers: {
+    //       Authorization: `Bearer ${localStorage.getItem("token")}`,
+    //     },
+    //   };
+    //   const URL = "/api/chat/groupremove";
+    //   const { data } = await axios.put(
+    //     URL,
+    //     {
+    //       chatId: selectedChat._id,
+    //       userId: user._id,
+    //     },
+    //     config
+    //   );
+    //   console.log(data);
+    // toast({
+    //   description: "User removed sucessfully",
+    //   status: "success",
+    //   duration: 5000,
+    //   position: "bottom-left",
+    // });
+    // setLoading(false);
+    // setFetchAgain(!fetchAgain);
+    // setSelectedChat(data.remove);
+    // } catch (error) {
+    // return toast({
+    //   description: error.message,
+    //   status: "error",
+    //   duration: 5000,
+    //   position: "bottom-left",
+    // });
+    // }
+    setLoading(false);
   };
 
   return (

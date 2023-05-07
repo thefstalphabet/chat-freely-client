@@ -1,7 +1,6 @@
 import React, { useContext, useState } from "react";
 import Styled from "styled-components";
 import { Link } from "react-router-dom";
-import axios from "axios";
 import {
   useToast,
   Button,
@@ -12,8 +11,7 @@ import {
 import { useNavigate } from "react-router";
 import { UserContext } from "../context/Context";
 import { BsEyeFill, BsEyeSlashFill } from "react-icons/bs";
-import { getHeaders, getPerfectUrl, makeApiRequest } from "../api/common";
-import { getApiUrl } from "../api/utils";
+import { makeApiRequest } from "../api/common";
 
 const initialInputData = {
   name: "",
@@ -147,9 +145,6 @@ export default function Login() {
     // }
     // }
   };
-
-
-  console.log(userInfo);
 
   return (
     <>
