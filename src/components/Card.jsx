@@ -33,17 +33,17 @@ export default function Card({ user, chat, action }) {
         >
           {!chat.isGroupChat ? (
             <>
-              {/* <Avatar
+              <Avatar
                 size="md"
-                src={frontUser(userInfo, chat).avatar}
-                name={frontUser(userInfo, chat).name}
-              /> */}
+                src={frontUser(userInfo, chat)?.avatar}
+                name={frontUser(userInfo, chat)?.name}
+              />
               <Info
                 style={{
                   color: selectedChat._id === chat._id && "var(--white)",
                 }}
               >
-                {/* <h3>{frontUser(userInfo, chat).name}</h3> */}
+                <h3>{frontUser(userInfo, chat)?.name}</h3>
               </Info>
             </>
           ) : (
